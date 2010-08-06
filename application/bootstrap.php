@@ -29,7 +29,7 @@ spl_autoload_register(array('Kohana', 'auto_load'));
 /**
  * Set the production status by the domain.
  */
-define('IN_PRODUCTION', (isset($_SERVER['SERVER_NAME']) && $_SERVER['SERVER_NAME'] == 'ff2fb.lysender.co.cc'));
+define('IN_PRODUCTION', (isset($_SERVER['SERVER_ADDR']) && $_SERVER['SERVER_ADDR'] !== '127.0.0.1'));
 
 /**
  * Set generic salt for application wide hashing
@@ -131,17 +131,35 @@ Route::set('default', '(<controller>(/<action>(/<id>(/<param2>(/<param3>)))))')
 	));
 
 /**
- * Check first if we are not suppressing request
- * Used in unit testing
+ * Execute the main request using PATH_INFO. If no URI source is specified,
+ * the URI will be automatically detected.
  */
-if( ! defined('SUPPRESS_REQUEST'))
+$request = Request::instance();
+
+try
 {
-	/**
-	 * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
-	 * If no source is specified, the URI will be automatically detected.
-	 */
-	echo Request::instance()
-		->execute()
-		->send_headers()
-		->response;
+	// Attempt to execute the response
+	$request->execute();
 }
+catch (Exception $e)
+{
+	if ( ! IN_PRODUCTION)
+	{
+		// Just re-throw the exception
+		throw $e;
+	}
+
+	// Log the error
+	Kohana::$log->add(Kohana::ERROR, Kohana::exception_text($e));
+
+	// Create a 404 response
+	$request->status   = 404;
+	$request->response = View::factory('template')
+		->set('title', '404')
+		->set('content', View::factory('errors/404'));
+}
+
+/**
+ * Display the request response.
+ */
+echo $request->send_headers()->response;
