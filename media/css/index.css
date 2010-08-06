@@ -1,0 +1,55 @@
+.paginator {
+	font-size:1.3em;
+	font-weight:bold;
+}
+.paginator a strong {
+	font-size: 1.3em;
+}
+/** Entries **/
+.entries {
+	padding-top:14px;
+	border-bottom:1px dotted #BBBBBB !important;
+	margin-bottom: 25px !important;
+	padding-bottom: 25px !important;
+}
+.entries .profile {
+	float: left;
+	width: 50px;
+}
+.entries .ebody {
+	margin-left: 63px;
+}
+.entries .ebody .name {
+	font-weight: bold;
+	font-size: 1.5em;
+	font-family: "Trebuchet MS","Segoe UI","Arial","Serif" !important;
+	margin-bottom: 0.3em;
+}
+.ebody .title .text {
+	font-size: 1.4em;
+	margin-bottom: 0.2em;
+}
+.ebody .title .info {
+	font-size: 1.3em;
+}
+.entries .thumb span {
+	margin-right: 10px;
+}
+.ebody .thumb .hidden {
+	display: none;
+}
+.ebody .player-thumb {
+	position: relative;
+	margin-bottom: 10px;
+}
+.ebody .player-thumb .player-button {
+	position: absolute;
+	z-index: 50;
+}
+hr.entry-sep {
+	clear: both;
+	margin: 30px 0 50px 0;
+}
+p.player {
+	display: none;
+}

@@ -1,0 +1,17 @@
+<phpunit bootstrap="bootstrap.php" colors="true">
+    <testsuite name="Hotmovie">
+        <directory>.</directory>
+    </testsuite>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">../tests</directory>
+            <exclude>
+			<directory suffix="*">../cache</directory>
+			<directory suffix="*">../config</directory>
+			<directory suffix="*">../logs</directory>
+                <directory suffix=".php">../views</directory>
+                <file>../bootstrap.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>

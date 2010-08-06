@@ -1,0 +1,38 @@
+# Turn on URL rewriting
+RewriteEngine On
+
+# Installation directory
+RewriteBase /
+
+# Cache static resource for 1 year
+<FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|swf|js|css)$">
+Header set Cache-Control "max-age=31536000, public, must-revalidate"
+Header set Expires "Thu, 04 Aug 2011 08:47:32 GMT"
+FileETag -INode MTime Size
+Header unset Last-Modified
+</FilesMatch>
+
+# Protect hidden files from being viewed
+<Files .*>
+	Order Deny,Allow
+	Deny From All
+</Files>
+
+# BEGIN Page cache
+
+RewriteRule ^/(.*)/$ /$1 [QSA]
+RewriteRule ^$ media/pagecache/index.html [QSA]
+RewriteRule ^([^.]+)/$ media/pagecache/$1/index.html [QSA]
+RewriteRule ^([^.]+)$ media/pagecache/$1/index.html [QSA]
+
+# END Page cache
+
+# Protect application and system files from being viewed
+RewriteRule ^(?:application|modules|system)\b - [F,L]
+
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d 
+
+RewriteRule ^.*$ - [NC,L]
+RewriteRule ^.*$ index.php [NC,L]
