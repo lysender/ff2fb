@@ -39,7 +39,7 @@ define('GENERIC_SALT', 'dJkrTa12s9as200d0783dss');
 /**
  * Defines the version of the application
  */
-define('APP_VERSION', '0.1.7');
+define('APP_VERSION', '0.1.8');
 
 /**
  * Enable the Kohana auto-loader for unserialization.
@@ -154,9 +154,11 @@ catch (Exception $e)
 
 	// Create a 404 response
 	$request->status   = 404;
-	$request->response = View::factory('template')
-		->set('title', '404')
-		->set('content', View::factory('errors/404'));
+	$response = Request::factory('/errors/404')->execute()->response;
+
+	// insert the requested page to the error reponse
+	$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site('/'.$request->uri, true));
+	$request->response = strtr((string)$response, $page);
 }
 
 /**
