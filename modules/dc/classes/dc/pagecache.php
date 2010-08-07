@@ -8,9 +8,9 @@
  * # BEGIN Page cache
  *
  * RewriteRule ^/(.*)/$ /$1 [QSA]
- * RewriteRule ^$ application/cache/page/index.html [QSA]
- * RewriteRule ^([^.]+)/$ application/cache/page/$1/index.html [QSA]
- * RewriteRule ^([^.]+)$ application/cache/page/$1/index.html [QSA]
+ * RewriteRule ^$ media/pagecache/index.html [QSA]
+ * RewriteRule ^([^.]+)/$ media/pagecache/$1/index.html [QSA]
+ * RewriteRule ^([^.]+)$ media/pagecache/$1/index.html [QSA]
  *
  * # END Page cache
  *
@@ -218,6 +218,16 @@ class Dc_Pagecache
 	{
 		file_put_contents($this->_file, $data);
 		return $this;
+	}
+
+	/** 
+	 * Reads the cached page and returns it as string
+	 *
+	 * @return string
+	 */
+	public function read()
+	{
+		return file_get_contents($this->_file);
 	}
 	
 	/**

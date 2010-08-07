@@ -14,7 +14,7 @@ class Controller_Import extends Controller_Site
 	
 	public function action_index()
 	{
-		$this->template_enabled = FALSE;
+		$this->auto_render = false;
 		$secret = $this->request->param('id');
 		
 		if ($secret != $this->_secret_key)

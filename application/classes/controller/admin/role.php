@@ -12,10 +12,10 @@ class Controller_Admin_Role extends Controller_Admin_Site
 	 */
 	public function action_index()
 	{
-		$this->head_title = 'Roles';
+		$this->template->title = 'Roles';
 		$this->view = View::factory('admin/role/index');
-		$this->head_js[] = 'jquery.tablesorter.min.js';
-		$this->head_js[] = 'admin/role.js';
+		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = '/media/js/admin/role.js';
 		
 		$roles = Sprig::factory('role')->load(NULL, FALSE);
 		if (!empty($roles))
@@ -29,7 +29,7 @@ class Controller_Admin_Role extends Controller_Admin_Site
 	 */
 	public function action_add()
 	{
-		$this->head_title = 'Roles - Add';
+		$this->template->title = 'Roles - Add';
 		$this->view = View::factory('admin/role/add');
 		
 		$this->role = Sprig::factory('role');
@@ -58,7 +58,7 @@ class Controller_Admin_Role extends Controller_Admin_Site
 		}
 		else
 		{
-			$this->head_readyscript[] = '$("#role_name").focus();';
+			$this->template->head_readyscripts = '$("#role_name").focus();'."\n";
 		}
 		
 		$this->view->role = $this->role;
@@ -98,7 +98,7 @@ class Controller_Admin_Role extends Controller_Admin_Site
 	 */
 	public function action_edit()
 	{
-		$this->head_title = 'Roles - Edit';
+		$this->template->title = 'Roles - Edit';
 		$this->view = View::factory('admin/role/edit');
 		
 		// Initialize role and redirect if invalid
@@ -124,7 +124,7 @@ class Controller_Admin_Role extends Controller_Admin_Site
 		}
 		else
 		{
-			$this->head_readyscript[] = '$("#role_name").focus();';
+			$this->template->head_readyscripts = '$("#role_name").focus();'."\n";
 		}
 		
 		$this->view->role = $this->role;

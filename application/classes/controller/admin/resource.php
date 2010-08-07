@@ -12,10 +12,10 @@ class Controller_Admin_Resource extends Controller_Admin_Site
 	 */
 	public function action_index()
 	{
-		$this->head_title = 'Resources';
+		$this->template->title = 'Resources';
 		$this->view = View::factory('admin/resource/index');
-		$this->head_js[] = 'jquery.tablesorter.min.js';
-		$this->head_js[] = 'admin/resource.js';
+		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = '/media/js/admin/resource.js';
 		
 		$resources = Sprig::factory('resource')->load(NULL, FALSE);
 		if (!empty($resources))
@@ -29,7 +29,7 @@ class Controller_Admin_Resource extends Controller_Admin_Site
 	 */
 	public function action_add()
 	{
-		$this->head_title = 'Resources - Add';
+		$this->template->title = 'Resources - Add';
 		$this->view = View::factory('admin/resource/add');
 		
 		$this->resource = Sprig::factory('resource');
@@ -58,7 +58,7 @@ class Controller_Admin_Resource extends Controller_Admin_Site
 		}
 		else
 		{
-			$this->head_readyscript[] = '$("#resource_name").focus();';
+			$this->template->head_readyscripts = '$("#resource_name").focus();'."\n";
 		}
 		
 		$this->view->resource = $this->resource;
@@ -98,7 +98,7 @@ class Controller_Admin_Resource extends Controller_Admin_Site
 	 */
 	public function action_edit()
 	{
-		$this->head_title = 'Resources - Edit';
+		$this->template->title = 'Resources - Edit';
 		$this->view = View::factory('admin/resource/edit');
 		
 		// Initialize resource and redirect if invalid
@@ -124,7 +124,7 @@ class Controller_Admin_Resource extends Controller_Admin_Site
 		}
 		else
 		{
-			$this->head_readyscript[] = '$("#resource_name").focus();';
+			$this->template->head_readyscripts = '$("#resource_name").focus();'."\n";
 		}
 		
 		$this->view->resource = $this->resource;

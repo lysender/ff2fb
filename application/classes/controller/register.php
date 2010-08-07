@@ -7,7 +7,7 @@ class Controller_Register extends Controller_Site
 	 */
 	public function action_index()
 	{
-		$this->head_title = 'Register';
+		$this->template->title = 'Register';
 		$this->view = View::factory('register/index');
 		
 		// i18n::lang('de');
@@ -36,7 +36,7 @@ class Controller_Register extends Controller_Site
 		}
 		else
 		{
-			$this->head_readyscript[] = '$("#username").focus()';
+			$this->template->head_readyscripts = '$("#username").focus()'."\n";
 		}
 		$this->view->user = $user;
 	}
@@ -51,7 +51,7 @@ class Controller_Register extends Controller_Site
 			$this->request->redirect('/');
 		}
 		
-		$this->head_title = 'Registration successful';
+		$this->template->title = 'Registration successful';
 		$this->view = View::factory('register/success');
 	}
 }

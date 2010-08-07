@@ -4,7 +4,7 @@ class Controller_Login extends Controller_Site
 {
 	public function action_index()
 	{
-		$this->head_title = 'Login';
+		$this->template->title = 'Login';
 		$this->view = View::factory('login/index');
 
 		if (!empty($_POST))
@@ -26,7 +26,7 @@ class Controller_Login extends Controller_Site
 				$this->_validation_errors($this->auth->errors());
 			}
 		}
-		$this->head_readyscript[] = '$("#username").focus()';
+		$this->template->head_readyscripts = '$("#username").focus()'."\n";
 		$this->view->user = $this->auth->user();
 	}
 	

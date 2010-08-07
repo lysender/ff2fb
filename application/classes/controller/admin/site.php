@@ -1,16 +1,11 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 abstract class Controller_Admin_Site extends Controller_Site
-{
+{	
 	/**
 	 * @var string
 	 */
-	public $head_titlemain = ' | FF2FB Admin';
-	
-	/**
-	 * @var string
-	 */
-	public $template = 'admin/site/default';
+	public $template = 'admin/site/template';
 	
 	/**
 	 * @var string
@@ -28,14 +23,36 @@ abstract class Controller_Admin_Site extends Controller_Site
 	 */
 	public function before()
 	{
+		$this->session = Session::instance();
+		
+		// initialize current page URL
+		$base = $this->request->uri();
+		$query = $_SERVER['QUERY_STRING'];
+		$this->current_page = "/$base?$query";
+		
+		$this->auth = Auth::instance();
+		$this->auth->initialize();
+		
+		parent::before();
+		
 		if (!$this->auth->logged_in())
 		{
 			$this->session->set('error', 'Login first to access the admin pages');
 			$this->session->set('login_redirect', $this->current_page);
 			$this->request->redirect('/login');
 		}
-		
-		parent::before();
+
+		if ($this->auto_render)
+		{
+			$this->template->styles = array(
+				'/media/css/reset.css'			=> 'all',
+				'/media/css/admin/default.css'	=> 'all'
+			);
+
+			$this->template->scripts = array(
+				'/media/js/jquery-1.3.2.min.js'
+			);
+		}
 	}
 	
 	/**
@@ -77,7 +94,7 @@ abstract class Controller_Admin_Site extends Controller_Site
 			'defaultrole' => 'user'
 		);
 		
-		$controller = Request::instance()->controller;
+		$controller = $this->request->controller;
 		if (!isset($nav[$controller]))
 		{
 			if (isset($sub[$controller]) && isset($nav[$sub[$controller]]))

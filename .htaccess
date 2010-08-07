@@ -20,10 +20,10 @@ Header unset Last-Modified
 
 # BEGIN Page cache
 
-#RewriteRule ^/(.*)/$ /$1 [QSA]
-#RewriteRule ^$ media/pagecache/index.html [QSA]
-#RewriteRule ^([^.]+)/$ media/pagecache/$1/index.html [QSA]
-#RewriteRule ^([^.]+)$ media/pagecache/$1/index.html [QSA]
+RewriteRule ^/(.*)/$ /$1 [QSA]
+RewriteRule ^$ media/pagecache/index.html [QSA]
+RewriteRule ^([^.]+)/$ media/pagecache/$1/index.html [QSA]
+RewriteRule ^([^.]+)$ media/pagecache/$1/index.html [QSA]
 
 # END Page cache
 

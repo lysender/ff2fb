@@ -17,7 +17,7 @@ class Controller_Feed extends Controller_Cached
 	 */
 	public function action_index()
 	{
-		$this->template_enabled = false;
+		$this->auto_render = false;
 		$feed = Sprig::factory('feed');
 		$rss = $feed->get_rss($this->_user_id);
 		

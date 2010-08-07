@@ -5,7 +5,7 @@ class Controller_Admin_Index extends Controller_Admin_Site
 
 	public function action_index()
 	{
-		$this->head_title = 'Admin | Dashboard';
+		$this->template->title = 'Dashboard';
 		$this->view = View::factory('admin/index/index');
 	}
 }

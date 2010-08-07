@@ -4,7 +4,7 @@ class Controller_Docs extends Controller_Cached {
 
 	public function action_index()
 	{
-		$this->head_title = 'Documentations';
+		$this->template->title = 'Documentations';
 		$this->view = View::factory('docs/index');
 	}
 }

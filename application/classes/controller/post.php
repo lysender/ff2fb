@@ -5,9 +5,9 @@ class Controller_Post extends Controller_Cached {
 	public function action_index()
 	{
 		$this->view = View::factory('post/index');
-		$this->head_css[] = 'index.css';
-		$this->head_js[] = 'index.js';
-		$this->head_js[] = 'dc-date.js';
+		$this->template->styles += array('/media/css/index.css' => 'all');
+		$this->template->scripts[] = '/media/js/index.js';
+		$this->template->scripts[] = '/media/js/dc-date.js';
 		
 		$id = $this->request->param('id');
 		if (!$id)
@@ -36,7 +36,7 @@ class Controller_Post extends Controller_Cached {
 		$body = $content['body'];
 		unset($content);
 		$title = Model_Feed::generate_title($body, $feed->id);
-		$this->head_title = $title;
+		$this->template->title = $title;
 		$this->view->feed = $feed;
 	}
 }
