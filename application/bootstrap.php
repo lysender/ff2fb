@@ -29,7 +29,7 @@ spl_autoload_register(array('Kohana', 'auto_load'));
 /**
  * Set the production status by the domain.
  */
-define('IN_PRODUCTION', (isset($_SERVER['SERVER_ADDR']) && $_SERVER['SERVER_ADDR'] !== '127.0.0.1'));
+define('IN_PRODUCTION', !(isset($_SERVER['SERVER_ADDR']) && $_SERVER['SERVER_ADDR'] == '127.0.0.1'));
 
 /**
  * Set generic salt for application wide hashing
