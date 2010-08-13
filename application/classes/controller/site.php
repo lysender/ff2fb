@@ -123,10 +123,6 @@ abstract class Controller_Site extends Controller_Template
 			$this->template->bind_global('nav', $menu);
 			$this->template->content = $this->view;
 			
-			// template disyplay logic
-			$this->template->header = View::factory($this->header);
-			$this->template->content = $this->view;
-			
 			$this->template->footer = View::factory($this->footer);			
 		}
 
