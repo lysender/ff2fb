@@ -29,7 +29,7 @@ spl_autoload_register(array('Kohana', 'auto_load'));
 /**
  * Set the production status by the domain.
  */
-define('IN_PRODUCTION', !(isset($_SERVER['SERVER_ADDR']) && $_SERVER['SERVER_ADDR'] == '127.0.0.1'));
+define('IN_PRODUCTION', !(isset($_SERVER['SERVER_ADDR']) AND $_SERVER['SERVER_ADDR'] == '127.0.0.1'));
 
 /**
  * Set generic salt for application wide hashing
@@ -134,12 +134,13 @@ Route::set('default', '(<controller>(/<action>(/<id>(/<param2>(/<param3>)))))')
  * Execute the main request using PATH_INFO. If no URI source is specified,
  * the URI will be automatically detected.
  */
-$request = Request::instance();
-
 try
 {
 	// Attempt to execute the response
-	$request->execute();
+	$request = Request::instance()->execute();
+	
+	// Display the request response.
+	echo $request->send_headers()->response;
 }
 catch (Exception $e)
 {
@@ -152,16 +153,26 @@ catch (Exception $e)
 	// Log the error
 	Kohana::$log->add(Kohana::ERROR, Kohana::exception_text($e));
 
-	// Create a 404 response
-	$request->status   = 404;
-	$response = Request::factory('/errors/404')->execute()->response;
+	// Create new request for serving error pages
+	$request = null;
 
-	// insert the requested page to the error reponse
-	$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site('/'.$request->uri, true));
-	$request->response = strtr((string)$response, $page);
+	// 404 errors are usually thrown as ReflectionException or 
+	// Kohana_Request_Exception when a controller/action is not
+	// found or a route is not set for a specific request
+	if ($e instanceof ReflectionException OR $e instanceof Kohana_Request_Exception)
+	{
+		// Create a 404 response
+		$request = Request::factory('errors/404')->execute();
+
+		// insert the requested page to the error reponse
+		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site('/'.$request->uri, true));
+		$request->response = strtr((string) $request->response, $page);
+	}
+	else
+	{
+		// create a 500 response
+		$request = Request::factory('errors/500')->execute();
+	}
+
+	echo $request->send_headers()->response;
 }
-
-/**
- * Display the request response.
- */
-echo $request->send_headers()->response;

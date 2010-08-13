@@ -1,10 +1,8 @@
-<h1><strong>Unexpected error occured</strong></h1>
-
-<p class="error">Page not found</p>
+<h1><strong>Page not found</strong></h1>
 
 <div class="entries">
 	<div class="entry-body">
-	<p>The requested page <?php echo HTML::anchor('{KOHANA_REQUESTED_PAGE}', '{KOHANA_REQUESTED_PAGE}') ?> is not found.</p>
+		<p>The requested page <?php echo HTML::anchor('{KOHANA_REQUESTED_PAGE}', '{KOHANA_REQUESTED_PAGE}') ?> is not found.</p>
 
 		<p>It is either not existing, moved or deleted. 
 		Make sure the URL is correct. </p>
