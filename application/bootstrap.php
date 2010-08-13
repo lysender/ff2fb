@@ -29,7 +29,7 @@ spl_autoload_register(array('Kohana', 'auto_load'));
 /**
  * Set the production status by the domain.
  */
-define('IN_PRODUCTION', !(isset($_SERVER['SERVER_ADDR']) AND $_SERVER['SERVER_ADDR'] == '127.0.0.1'));
+define('IN_PRODUCTION', false);
 
 /**
  * Set generic salt for application wide hashing
@@ -165,7 +165,8 @@ catch (Exception $e)
 		$request = Request::factory('errors/404')->execute();
 
 		// insert the requested page to the error reponse
-		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site('/'.$request->uri, true));
+		$uri = (isset($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : '/';
+		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site("/$uri", true));
 		$request->response = strtr((string) $request->response, $page);
 	}
 	else

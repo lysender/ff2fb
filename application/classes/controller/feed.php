@@ -28,6 +28,6 @@ class Controller_Feed extends Controller_Cached
 		$this->request->response = $view->render();
 		
 		// send xml header
-		header('Content-Type: application/xml; charset=UTF-8');
+		$this->request->headers['Content-Type'] = 'application/xml; charset=UTF-8';
 	}
 }

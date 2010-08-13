@@ -3,6 +3,7 @@
 <IfModule mod_headers.c>
   Header set Cache-Control 'max-age=300, must-revalidate'
 </IfModule>
+
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType text/html A300
@@ -11,8 +12,8 @@
 # Serve feed as XML
 <IfModule mod_headers.c>
   <Files "pagecache/feed/index.html">
-    Header set Content-Type "application/xml"
-    Header set charset "UTF-8"
+    Header set Cache-Control 'max-age=300, must-revalidate'
+    Header set Content-type 'application/xml; charset=UTF-8'
   </Files>
 </IfModule>
 
