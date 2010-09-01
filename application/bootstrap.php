@@ -94,7 +94,7 @@ Kohana::modules(array(
 	// 'orm'        => MODPATH.'orm',        // Object Relationship Mapping
 	// 'pagination' => MODPATH.'pagination', // Paging of results
 	//'userguide'  => MODPATH.'userguide',  // User guide and API documentation
-	// 'unittest'  => MODPATH.'unittest',    // PHPUnit integration
+	'unittest'  => MODPATH.'unittest',    // PHPUnit integration
 	// 'ACL'  		=> MODPATH.'ACL',    // ACL
 	'dc'		=> MODPATH.'dc'		// Dc module / packages / helpers
 ));
