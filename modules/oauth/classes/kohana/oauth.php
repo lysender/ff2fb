@@ -3,7 +3,7 @@
  * OAuth Library
  *
  * @package    Kohana/OAuth
- * @package    Base
+ * @category    Base
  * @author     Kohana Team
  * @copyright  (c) 2010 Kohana Team
  * @license    http://kohanaframework.org/license
@@ -86,8 +86,14 @@ abstract class Kohana_OAuth {
 	 * @return  string
 	 * @uses    OAuth::urlencode
 	 */
-	public static function normalize_params(array $params)
+	public static function normalize_params(array $params = NULL)
 	{
+		if ( ! $params)
+		{
+			// Nothing to do
+			return '';
+		}
+
 		// Encode the parameter keys and values
 		$keys   = OAuth::urlencode(array_keys($params));
 		$values = OAuth::urlencode(array_values($params));
@@ -119,18 +125,6 @@ abstract class Kohana_OAuth {
 			{
 				$query[] = $name.'='.$value;
 			}
-		}
-
-		return implode('&', $query);
-	}
-
-	public static function normalize_post(array $params)
-	{
-		$query = array();
-
-		foreach ($params as $field => $value)
-		{
-			$query[] = $field.'='.$value;
 		}
 
 		return implode('&', $query);

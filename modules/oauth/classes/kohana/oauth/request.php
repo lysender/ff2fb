@@ -65,11 +65,6 @@ class Kohana_OAuth_Request {
 	protected $required = array();
 
 	/**
-	 * @var  array  POST body
-	 */
-	protected $post = array();
-
-	/**
 	 * Set the request URL, method, and parameters.
 	 *
 	 * @param  string  request method
@@ -179,7 +174,6 @@ class Kohana_OAuth_Request {
 	 * @param   OAuth_Request   request to sign
 	 * @return  string
 	 * @uses    OAuth::urlencode
-	 * @uses    OAuth::normalize_post
 	 * @uses    OAuth::normalize_params
 	 */
 	public function base_string()
@@ -188,12 +182,6 @@ class Kohana_OAuth_Request {
 
 		// Get the request parameters
 		$params = $this->params;
-
-		if ($this->post)
-		{
-			// Add the POST fields to the parameters
-			$params += $this->post;
-		}
 
 		// "oauth_signature" is never included in the base string!
 		unset($params['oauth_signature']);
@@ -282,30 +270,6 @@ class Kohana_OAuth_Request {
 	}
 
 	/**
-	 * Get and set POST fields. Adding a value will cause the request to be
-	 * sent with the HTTP POST method.
-	 *
-	 *     $request->post($field, $value);
-	 *
-	 * @param   string  field name
-	 * @param   string  field value
-	 * @return  string  when getting
-	 * @return  $this   when setting
-	 * @uses    Arr::get
-	 */
-	public function post($field, $value = NULL)
-	{
-		if (func_num_args() < 2)
-		{
-			return Arr::get($this->post, $field);
-		}
-
-		$this->post[$field] = $value;
-
-		return $this;
-	}
-
-	/**
 	 * Get and set required parameters.
 	 *
 	 *     $request->required($field, $value);
@@ -343,9 +307,12 @@ class Kohana_OAuth_Request {
 
 		foreach ($this->params as $name => $value)
 		{
-			// OAuth Spec 5.4.1
-			// "Parameter names and values are encoded per Parameter Encoding [RFC 3986]."
-			$header[] = OAuth::urlencode($name).'="'.OAuth::urlencode($value).'"';
+			if (strpos($name, 'oauth_') === 0)
+			{
+				// OAuth Spec 5.4.1
+				// "Parameter names and values are encoded per Parameter Encoding [RFC 3986]."
+				$header[] = OAuth::urlencode($name).'="'.OAuth::urlencode($value).'"';
+			}
 		}
 
 		return 'OAuth '.implode(', ', $header);
@@ -359,11 +326,32 @@ class Kohana_OAuth_Request {
 	 *
 	 * [!!] This method implements [OAuth 1.0 Spec 5.2 (2,3)](http://oauth.net/core/1.0/#rfc.section.5.2).
 	 *
+	 * @param   boolean   include oauth parameters
 	 * @return  string
 	 */
-	public function as_query()
+	public function as_query($include_oauth = NULL)
 	{
-		return OAuth::normalize_params($this->params);
+		if ($include_oauth !== TRUE AND $this->send_header)
+		{
+			// If we are sending a header, OAuth parameters should not be
+			// included in the query string.
+
+			$params = array();
+			foreach ($this->params as $name => $value)
+			{
+				if (strpos($name, 'oauth_') !== 0)
+				{
+					// This is not an OAuth parameter
+					$params[$name] = $value;
+				}
+			}
+		}
+		else
+		{
+			$params = $this->params;
+		}
+
+		return OAuth::normalize_params($params);
 	}
 
 	/**
@@ -376,7 +364,7 @@ class Kohana_OAuth_Request {
 	 */
 	public function as_url()
 	{
-		return $this->url.'?'.$this->as_query();
+		return $this->url.'?'.$this->as_query(TRUE);
 	}
 
 	/**
@@ -466,22 +454,22 @@ class Kohana_OAuth_Request {
 			// Store the new headers
 			$options[CURLOPT_HTTPHEADER] = $headers;
 		}
-		elseif ($query = $this->as_query())
-		{
-			// Append the parameters to the query string
-			$url = "{$url}?{$query}";
-		}
 
 		if ($this->method === 'POST')
 		{
 			// Send the request as a POST
 			$options[CURLOPT_POST] = TRUE;
 
-			if ($this->post)
+			if ($post = $this->as_query())
 			{
 				// Attach the post fields to the request
-				$options[CURLOPT_POSTFIELDS] = OAuth::normalize_post($this->post);
+				$options[CURLOPT_POSTFIELDS] = $post;
 			}
+		}
+		elseif ($query = $this->as_query())
+		{
+			// Append the parameters to the query string
+			$url = "{$url}?{$query}";
 		}
 
 		return Remote::get($url, $options);

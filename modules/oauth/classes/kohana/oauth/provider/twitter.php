@@ -17,6 +17,8 @@
  */
 class Kohana_OAuth_Provider_Twitter extends OAuth_Provider {
 
+	public $name = 'twitter';
+
 	protected $signature = 'HMAC-SHA1';
 
 	public function url_request_token()
