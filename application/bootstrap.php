@@ -184,7 +184,7 @@ catch (Exception $e)
 
 		// insert the requested page to the error reponse
 		$uri = (isset($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : '/';
-		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site("/$uri", true));
+		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site("$uri", true));
 		$request->response = strtr((string) $request->response, $page);
 	}
 	else
