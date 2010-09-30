@@ -5,7 +5,7 @@
 /**
  * Set the default time zone.
  *
- * @see  http://docs.kohanaphp.com/about.configuration
+ * @see  http://kohanaframework.org/guide/using.configuration
  * @see  http://php.net/timezones
  */
 date_default_timezone_set('Asia/Manila');
@@ -13,7 +13,7 @@ date_default_timezone_set('Asia/Manila');
 /**
  * Set the default locale.
  *
- * @see  http://docs.kohanaphp.com/about.configuration
+ * @see  http://kohanaframework.org/guide/using.configuration
  * @see  http://php.net/setlocale
  */
 setlocale(LC_ALL, 'en_US.utf-8');
@@ -21,15 +21,30 @@ setlocale(LC_ALL, 'en_US.utf-8');
 /**
  * Enable the Kohana auto-loader.
  *
- * @see  http://docs.kohanaphp.com/about.autoloading
+ * @see  http://kohanaframework.org/guide/using.autoloading
  * @see  http://php.net/spl_autoload_register
  */
 spl_autoload_register(array('Kohana', 'auto_load'));
 
 /**
- * Set the production status by the domain.
+ * Enable the Kohana auto-loader for unserialization.
+ *
+ * @see  http://php.net/spl_autoload_call
+ * @see  http://php.net/manual/var.configuration.php#unserialize-callback-func
  */
-define('IN_PRODUCTION', false);
+ini_set('unserialize_callback_func', 'spl_autoload_call');
+
+/**
+ * Set the production status by environment
+ */
+$production_status = true;
+
+if (in_array(getenv('APPLICATION_ENV'), array('development', 'testing')))
+{
+	$production_status = false;
+}
+
+define('IN_PRODUCTION', $production_status);
 
 /**
  * Set generic salt for application wide hashing
@@ -39,15 +54,18 @@ define('GENERIC_SALT', 'dJkrTa12s9as200d0783dss');
 /**
  * Defines the version of the application
  */
-define('APP_VERSION', '0.1.8');
+define('APP_VERSION', '0.1.9');
+
+//-- Configuration and initialization -----------------------------------------
 
 /**
- * Enable the Kohana auto-loader for unserialization.
- *
- * @see  http://php.net/spl_autoload_call
- * @see  http://php.net/manual/var.configuration.php#unserialize-callback-func
+ * Set Kohana::$environment if $_ENV['KOHANA_ENV'] has been supplied.
+ * 
  */
-ini_set('unserialize_callback_func', 'spl_autoload_call');
+if (isset($_ENV['KOHANA_ENV']))
+{
+	Kohana::$environment = $_ENV['KOHANA_ENV'];
+}
 
 //-- Configuration and initialization -----------------------------------------
 
@@ -131,8 +149,8 @@ Route::set('default', '(<controller>(/<action>(/<id>(/<param2>(/<param3>)))))')
 	));
 
 /**
- * Execute the main request using PATH_INFO. If no URI source is specified,
- * the URI will be automatically detected.
+ * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
+ * If no source is specified, the URI will be automatically detected.
  */
 try
 {
@@ -166,7 +184,7 @@ catch (Exception $e)
 
 		// insert the requested page to the error reponse
 		$uri = (isset($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : '/';
-		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site("/$uri", true));
+		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site($uri, true));
 		$request->response = strtr((string) $request->response, $page);
 	}
 	else

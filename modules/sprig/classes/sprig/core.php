@@ -9,6 +9,8 @@
  */
 abstract class Sprig_Core {
 
+	const VERSION = '1.1.1';
+
 	// Model many-to-many relations
 	protected static $_relations;
 
@@ -144,9 +146,6 @@ abstract class Sprig_Core {
 
 		foreach ($this->_fields as $name => $field)
 		{
-			// Assign this model to the field
-			$field->object = $this;
-
 			if ($field instanceof Sprig_Field_ForeignKey AND ! $field->model)
 			{
 				if ($field instanceof Sprig_Field_HasMany)
@@ -199,7 +198,16 @@ abstract class Sprig_Core {
 
 				if ($field instanceof Sprig_Field_BelongsTo)
 				{
-					$field->column = Sprig::factory($field->model)->fk();
+					if ( isset($field->foreign_key) AND $field->foreign_key)
+					{
+						$fk = $field->foreign_key;
+					}
+					else
+					{
+						$fk = Sprig::factory($field->model)->fk();
+					}
+
+					$field->column = $fk;
 				}
 				elseif ($field instanceof Sprig_Field_HasOne)
 				{
@@ -334,16 +342,36 @@ abstract class Sprig_Core {
 							}
 							else
 							{
+								// TODO this needs testing
+								$wrapped = array_map(
+									array($model->field($model->pk()),'_database_wrap'),
+									$value);
 								$query = DB::select()
-									->where($model->pk(), 'IN', $value);
+									->where($model->pk(), 'IN', $wrapped);
 							}
 						}
 						else
 						{
+							// We can grab the PK from the field definition.
+							// If it doesn't exist, revert to the model choice
+							if ( isset($field->left_foreign_key) AND $field->left_foreign_key)
+							{
+								$fk = $field->through.'.'.$field->left_foreign_key;
+								$fk2 = $field->through.'.'.$model->pk();
+							}
+							else
+							{
+								$fk = $this->fk($field->through);
+								$fk2 = $model->fk($field->through);
+							}
+
 							$query = DB::select()
 								->join($field->through)
-									->on($model->fk($field->through), '=', $model->pk(TRUE))
-								->where($this->fk($field->through), '=', $this->{$this->_primary_key});
+									->on($fk2, '=', $model->pk(TRUE))
+								->where(
+									$fk,
+									'=',
+									$this->_fields[$this->_primary_key]->_database_wrap($this->{$this->_primary_key}));
 						}
 					}
 					else
@@ -351,12 +379,27 @@ abstract class Sprig_Core {
 						if (isset($value))
 						{
 							$query = DB::select()
-								->where($model->pk(), '=', $value);
+								->where(
+									$model->pk(),
+									'=',
+									$field->_database_wrap($value));
 						}
 						else
 						{
+							if ( isset($field->foreign_key) AND $field->foreign_key)
+							{
+								$fk = $field->foreign_key;
+							}
+							else
+							{
+								$fk = $model->fk();
+							}
+
 							$query = DB::select()
-								->where($this->fk(), '=', $this->{$this->_primary_key});
+								->where(
+									$fk,
+									'=',
+									$this->_fields[$this->_primary_key]->_database_wrap($this->{$this->_primary_key}));
 						}
 					}
 
@@ -371,7 +414,12 @@ abstract class Sprig_Core {
 				}
 				elseif ($field instanceof Sprig_Field_BelongsTo)
 				{
-					$related = $model->values(array($model->pk() => $value));
+					if ( isset($field->primary_key) AND $field->primary_key)
+						$pk = $field->primary_key;
+					else
+						$pk = $model->pk();
+
+					$related = $model->values(array($pk => $value));
 				}
 				elseif ($field instanceof Sprig_Field_HasOne)
 				{
@@ -427,9 +475,25 @@ abstract class Sprig_Core {
 			{
 				$model = Sprig::factory($field->model);
 
-				$result = DB::select($model->fk())
+				if ( isset($field->left_foreign_key) AND $field->left_foreign_key)
+				{
+					$fk = $field->left_foreign_key;
+				}
+				else
+				{
+					$fk = $model->fk();
+				}
+
+				$result = DB::select(
+						array(
+							$model->field($model->pk())->_database_unwrap($fk),
+							$model->fk())
+						)
 					->from($field->through)
-					->where($this->fk(), '=', $this->{$this->_primary_key})
+					->where(
+						$fk,
+						'=',
+						$this->_fields[$this->_primary_key]->_database_wrap($this->{$this->_primary_key}))
 					->execute($this->_db);
 
 				// The original value for the relationship must be defined
@@ -486,7 +550,10 @@ abstract class Sprig_Core {
 			$changed = call_user_func($field->hash_with, $changed);
 		}
 
-		if ($changed !== $this->_original[$name])
+		$re_changed = (array_key_exists($name, $this->_changed) &&
+			$changed !== $this->_changed[$name]);
+		$original = $changed === $this->_original[$name];
+		if ($re_changed OR ! $original)
 		{
 			if (isset($this->_related[$name]))
 			{
@@ -494,13 +561,22 @@ abstract class Sprig_Core {
 				unset($this->_related[$name]);
 			}
 
-			// Set a changed value
-			$this->_changed[$name] = $changed;
-
-			if ($field instanceof Sprig_Field_ForeignKey AND is_object($value))
+			if ($original)
 			{
-				// Store the related object for later use
-				$this->_related[$name] = $value;
+				// Simply pretend the change never happened
+				unset($this->_changed[$name]);
+			}
+			else
+			{
+				// Set a changed value
+				$this->_changed[$name] = $changed;
+			
+				if ($field instanceof Sprig_Field_ForeignKey
+					AND is_object($value))
+				{
+					// Store the related object for later use
+					$this->_related[$name] = $value;
+				}
 			}
 		}
 	}
@@ -547,6 +623,126 @@ abstract class Sprig_Core {
 
 		// Remove any changed value
 		unset($this->_changed[$name]);
+	}
+
+	/**
+	 * Allow serialization of initialized object containing related objects as a Database_Result
+	 * @return array	list of properties to serialize
+	 */
+	public function __sleep()
+	{
+		foreach ($this->_related as $field => $object)
+		{
+			if ($object instanceof Database_Result)
+			{
+				if ($object instanceof Database_Result_Cached)
+				{
+					continue;
+				}
+
+				// Convert result object to cached result to allow for serialization
+				// Currently no way to get the $_query property form the result to pass to the cached result
+				// @see http://dev.kohanaphp.com/issues/2297
+
+				$this->_related[$field] = new Database_Result_Cached($object->as_array(), '');
+			}
+		}
+
+		// Return array of all properties to get them serialised
+		$props = array();
+
+		foreach ($this as $prop => $val)
+		{
+			$props[] = $prop;
+		}
+
+		return $props;
+	}
+
+	/**
+	 * Adds a relationship to the model
+	 * 
+	 * @param  string  field name to add the relationship to
+	 * @param  mixed   model to add, can be in integer model ID, a single model object, or an array of integers
+	 * 
+	 * @throws Sprig_Exception  on invalid relationship or model arguments
+	 *
+	 * @return $this
+	 */
+	public function add($name, $value)
+	{
+		if ( ! isset($this->_original[$name]) OR ! is_array($this->_original[$name]))
+		{
+			throw new Sprig_Exception('Unknown relationship: :name', array(':name' => $name));
+		}
+
+		$values = array();
+		if (is_object($value))
+		{
+			$values[$value->{$value->pk()}] = $value->{$value->pk()};
+		}
+		elseif(is_numeric($value))
+		{
+			$values[$value] = $value;
+		}
+		elseif(is_array($value))
+		{
+			$values = $value;
+		}
+		else
+		{
+			throw new Sprig_Exception('Invalid data type: :value', array(':value' => $value));
+		}
+
+		$this->$name = $this->_original[$name]+$values;
+
+		return $this;
+	}
+
+	/**
+	 * Removes a relationship to the model
+	 * 
+	 * @param  string  field name to add the relationship to
+	 * @param  mixed   model to remove, can be in integer model ID, a single model object, or an array of integers
+	 * 
+	 * @throws Sprig_Exception  on invalid relationship or model arguments
+	 *
+	 * @return $this
+	 */
+	public function remove($name, $value)
+	{
+		if ( ! isset($this->_original[$name]) OR ! is_array($this->_original[$name]))
+		{
+			throw new Sprig_Exception('Unknown relationship: :name', array(':name' => $name));
+		}
+
+		$values = array();
+		if (is_object($value))
+		{
+			$values[$value->{$value->pk()}] = $value->{$value->pk()};
+		}
+		elseif(is_numeric($value))
+		{
+			$values[$value] = $value;
+		}
+		elseif(is_array($value))
+		{
+			$values = $value;
+		}
+		else
+		{
+			throw new Sprig_Exception('Invalid data type: :value', array(':value' => $value));
+		}
+
+		$original = $this->_original[$name];
+		foreach ($values as $value)
+		{
+			unset($original[$value]);
+		}
+
+		$this->$name = $original;
+
+		return $this;
 	}
 
 	/**
@@ -930,7 +1126,10 @@ abstract class Sprig_Core {
 					continue;
 				}
 
-				$query->where("{$table}.{$field->column}", '=', $value);
+				$query->where(
+					"{$table}.{$field->column}",
+					'=',
+					$field->_database_wrap($value));
 			}
 		}
 
@@ -969,18 +1168,14 @@ abstract class Sprig_Core {
 				continue;
 			}
 
-			if ($name === $field->column)
-			{
-				$query->select("{$table}.{$name}");
-			}
-			else
-			{
-				$query->select(array("{$table}.{$field->column}", $name));
-			}
+			$query->select(array($field->_database_unwrap("{$table}.{$field->column}"), $name));
 
 			if (array_key_exists($name, $changed))
 			{
-				$query->where("{$table}.{$field->column}", '=', $changed[$name]);
+				$query->where(
+					"{$table}.{$field->column}",
+					'=',
+					$field->_database_wrap($changed[$name]));
 			}
 		}
 
@@ -1004,7 +1199,8 @@ abstract class Sprig_Core {
 
 			if (count($result))
 			{
-				$this->values($result[0])->state('loaded');
+				$this->_changed = array();
+				$this->state('loading')->values($result[0])->state('loaded');
 			}
 
 			return $this;
@@ -1055,7 +1251,7 @@ abstract class Sprig_Core {
 			}
 
 			// Change the field name to the column name
-			$values[$field->column] = $value;
+			$values[$field->column] = $field->_database_wrap($value);
 		}
 
 		list($id) = DB::insert($this->_table, array_keys($values))
@@ -1090,12 +1286,25 @@ abstract class Sprig_Core {
 			{
 				$field = $this->_fields[$name];
 
+				if ( isset($field->foreign_key) AND $field->foreign_key)
+				{
+					$fk = $field->foreign_key;
+				}
+				else
+				{
+					$fk = $this->fk($field->through);
+				}
+
 				$model = Sprig::factory($field->model);
 
 				foreach ($value as $id)
 				{
-					DB::insert($field->through, array($this->fk(), $model->fk()))
-						->values(array($this->{$this->_primary_key}, $id))
+					DB::insert($field->through, array($fk, $model->fk()))
+						->values(
+							array(
+								$this->_fields[$this->_primary_key]->_database_wrap($this->{$this->_primary_key}),
+								$model->field($model->pk())->_database_wrap($id))
+							)
 						->execute($this->_db);
 				}
 			}
@@ -1144,7 +1353,7 @@ abstract class Sprig_Core {
 				}
 
 				// Change the field name to the column name
-				$values[$field->column] = $value;
+				$values[$field->column] = $field->_database_wrap($value);
 			}
 
 			if ($values)
@@ -1156,12 +1365,18 @@ abstract class Sprig_Core {
 				{
 					foreach($this->_primary_key as $field)
 					{
-						$query->where($this->_fields[$field]->column, '=', $this->_original[$field]);
+						$query->where(
+							$this->_fields[$field]->column,
+							'=',
+							$this->_fields[$field]->_database_wrap($this->_original[$field]));
 					}
 				}
 				else
 				{
-					$query->where($this->_fields[$this->_primary_key]->column, '=', $this->_original[$this->_primary_key]);
+					$query->where(
+						$this->_fields[$this->_primary_key]->column,
+						'=',
+						$this->_fields[$this->_primary_key]->_database_wrap($this->_original[$this->_primary_key]));
 				}
 
 				$query->execute($this->_db);
@@ -1175,12 +1390,36 @@ abstract class Sprig_Core {
 
 					$model = Sprig::factory($field->model);
 
+					if ( isset($field->left_foreign_key) AND $field->left_foreign_key)
+					{
+						$left_fk = $field->left_foreign_key;
+					}
+					else
+					{
+						$left_fk = $this->fk();
+					}
+
+					if ( isset($field->right_foreign_key) AND $field->right_foreign_key)
+					{
+						$right_fk = $field->right_foreign_key;
+					}
+					else
+					{
+						$right_fk = $model->fk();
+					}
+
 					// Find old relationships that must be deleted
 					if ($old = array_diff($this->_original[$name], $value))
 					{
+						// TODO this needs testing
+						$old = array_map(array($this->_fields[$this->_primary_key],'_database_wrap'), $old);
+
 						DB::delete($field->through)
-							->where($this->fk(), '=', $this->{$this->_primary_key})
-							->where($model->fk(), 'IN', $old)
+							->where(
+								$left_fk,
+								'=',
+								$this->_fields[$this->_primary_key]->_database_wrap($this->{$this->_primary_key}))
+							->where($right_fk, 'IN', $old)
 							->execute($this->_db);
 					}
 
@@ -1189,8 +1428,12 @@ abstract class Sprig_Core {
 					{
 						foreach ($new as $id)
 						{
-							DB::insert($field->through, array($this->fk(), $model->fk()))
-								->values(array($this->{$this->_primary_key}, $id))
+							DB::insert($field->through, array($left_fk, $right_fk))
+								->values(
+									array(
+										$this->_fields[$this->_primary_key]->_database_wrap($this->{$this->_primary_key}),
+										$model->field($model->pk())->_database_wrap($id)
+									))
 								->execute($this->_db);
 						}
 					}
@@ -1232,7 +1475,10 @@ abstract class Sprig_Core {
 		{
 			foreach ($changed as $field => $value)
 			{
-				$query->where($this->_fields[$field]->column, '=', $value);
+				$query->where(
+					$this->_fields[$field]->column,
+					'=',
+					$this->_fields[$field]->_database_wrap($value));
 			}
 		}
 		else
@@ -1241,12 +1487,18 @@ abstract class Sprig_Core {
 			{
 				foreach($this->_primary_key as $field)
 				{
-					$query->where($this->_fields[$field]->column, '=', $this->_original[$field]);
+					$query->where(
+						$this->_fields[$field]->column,
+						'=',
+						$this->_fields[$field]->_database_wrap($this->_original[$field]));
 				}
 			}
 			else
 			{
-				$query->where($this->_fields[$this->_primary_key]->column, '=', $this->_original[$this->_primary_key]);
+				$query->where(
+					$this->_fields[$this->_primary_key]->column,
+					'=',
+					$this->_fields[$this->_primary_key]->_database_wrap($this->_original[$this->_primary_key]));
 			}
 		}
 
@@ -1323,7 +1575,10 @@ abstract class Sprig_Core {
 		{
 			$query = DB::select($this->_fields[$this->_primary_key]->column)
 				->from($this->_table)
-				->where($this->_fields[$field]->column, '=', $array[$field])
+				->where(
+					$this->_fields[$field]->column,
+					'=',
+					$this->_fields[$field]->_database_wrap($array[$field]))
 				->execute($this->_db);
 
 			if (count($query))

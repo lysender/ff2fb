@@ -19,6 +19,8 @@
  */
 class Kohana_OAuth_Provider_Google extends OAuth_Provider {
 
+	public $name = 'google';
+
 	protected $signature = 'HMAC-SHA1';
 
 	public function url_request_token()

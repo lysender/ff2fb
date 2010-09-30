@@ -3,7 +3,7 @@
  * OAuth Consumer
  *
  * @package    Kohana/OAuth
- * @package    Base
+ * @category    Base
  * @author     Kohana Team
  * @copyright  (c) 2010 Kohana Team
  * @license    http://kohanaframework.org/license

@@ -29,6 +29,11 @@ abstract class Kohana_OAuth_Provider {
 	}
 
 	/**
+	 * @var  string  provider name
+	 */
+	public $name;
+
+	/**
 	 * @var  array  additional request parameters to be used for remote requests
 	 */
 	protected $params = array();
@@ -57,6 +62,12 @@ abstract class Kohana_OAuth_Provider {
 		{
 			// Convert the signature name into an object
 			$this->signature = OAuth_Signature::factory($this->signature);
+		}
+
+		if ( ! $this->name)
+		{
+			// Attempt to guess the name from the class name
+			$this->name = strtolower(substr(get_class($this), strlen('OAuth_Provider_')));
 		}
 	}
 

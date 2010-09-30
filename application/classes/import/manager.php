@@ -95,7 +95,7 @@ class Import_Manager
 	{
 		if ($this->_buffer === null)
 		{
-			$this->_buffer = new Import_Buffer(array('max' => 200));
+			$this->_buffer = new Import_Buffer(array('max' => 400));
 		}
 		return $this->_buffer;
 	}

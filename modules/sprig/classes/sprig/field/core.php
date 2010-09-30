@@ -87,11 +87,6 @@ abstract class Sprig_Field_Core {
 	 */
 	public $callbacks = array();
 
-	/**
-	 * @var  object  {@link Sprig} model parent
-	 */
-	public $object;
-
 	public function __construct(array $options = NULL)
 	{
 		if ( ! empty($options))
@@ -138,6 +133,16 @@ abstract class Sprig_Field_Core {
 	public function label($name, array $attr = NULL)
 	{
 		return Form::label($name, UTF8::ucwords($this->label), $attr);
+	}
+	
+	public function _database_wrap($value)
+	{
+		return $value;
+	}
+	
+	public function _database_unwrap($value)
+	{
+		return $value;
 	}
 
 } // End Sprig_Field
