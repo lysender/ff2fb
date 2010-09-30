@@ -36,7 +36,7 @@ class Import_Collector
 		if ($this->include_posts)
 		{
 			$posts = $this->get_posts();
-			if (!empty($posts))
+			if ( ! empty($posts))
 			{
 				$result += $posts;
 			}
@@ -45,7 +45,7 @@ class Import_Collector
 		if ($this->include_likes)
 		{
 			$likes = $this->get_likes();
-			if (!empty($likes))
+			if ( ! empty($likes))
 			{
 				$result += $likes;
 			}

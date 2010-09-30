@@ -4,6 +4,9 @@ RewriteEngine On
 # Installation directory
 RewriteBase /
 
+# Set environment
+SetEnv APPLICATION_ENV "production"
+
 # Cache static resource for 1 year
 <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|swf|js|css)$">
 Header set Cache-Control "max-age=31536000, public, must-revalidate"
