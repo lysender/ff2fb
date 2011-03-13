@@ -12,4 +12,5 @@ Thumbs.db
 *.swp
 
 .htaccess
+/index.php
 /nbproject/
