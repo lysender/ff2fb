@@ -8,6 +8,8 @@ Thumbs.db
 .project
 .settings
 *.kpf
+*.komodoproject
 *.swp
 
 .htaccess
+/nbproject/
