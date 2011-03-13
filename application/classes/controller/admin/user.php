@@ -8,7 +8,7 @@ class Controller_Admin_User extends Controller_Admin_Site
 		$this->template->title = 'User Management';
 		$this->view = View::factory('admin/user/index');
 		
-		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
-		$this->template->scripts[] = '/media/js/admin/user.js';
+		$this->template->scripts[] = 'media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = 'media/js/admin/user.js';
 	}
 }

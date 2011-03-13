@@ -5,7 +5,7 @@ RewriteEngine On
 RewriteBase /
 
 # Set environment
-SetEnv APPLICATION_ENV "production"
+SetEnv KOHANA_ENV "production"
 
 # Cache static resource for 1 year
 <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|swf|js|css)$">

@@ -5,9 +5,9 @@ class Controller_Post extends Controller_Cached {
 	public function action_index()
 	{
 		$this->view = View::factory('post/index');
-		$this->template->styles += array('/media/css/index.css' => 'all');
-		$this->template->scripts[] = '/media/js/index.js';
-		$this->template->scripts[] = '/media/js/dc-date.js';
+		$this->template->styles += array('media/css/index.css' => 'all');
+		$this->template->scripts[] = 'media/js/index.js';
+		$this->template->scripts[] = 'media/js/dc-date.js';
 		
 		$id = $this->request->param('id');
 		if (!$id)

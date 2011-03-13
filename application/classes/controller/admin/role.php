@@ -14,8 +14,8 @@ class Controller_Admin_Role extends Controller_Admin_Site
 	{
 		$this->template->title = 'Roles';
 		$this->view = View::factory('admin/role/index');
-		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
-		$this->template->scripts[] = '/media/js/admin/role.js';
+		$this->template->scripts[] = 'media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = 'media/js/admin/role.js';
 		
 		$roles = Sprig::factory('role')->load(NULL, FALSE);
 		if (!empty($roles))

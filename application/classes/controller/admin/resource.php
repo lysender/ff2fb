@@ -14,8 +14,8 @@ class Controller_Admin_Resource extends Controller_Admin_Site
 	{
 		$this->template->title = 'Resources';
 		$this->view = View::factory('admin/resource/index');
-		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
-		$this->template->scripts[] = '/media/js/admin/resource.js';
+		$this->template->scripts[] = 'media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = 'media/js/admin/resource.js';
 		
 		$resources = Sprig::factory('resource')->load(NULL, FALSE);
 		if (!empty($resources))

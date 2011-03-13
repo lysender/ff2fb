@@ -25,9 +25,9 @@ class Controller_Feed extends Controller_Cached
 			->bind('info', $rss['info'])
 			->bind('items', $rss['items']);
 			
-		$this->request->response = $view->render();
+		$this->response->body($view->render());
 		
-		// send xml header
-		$this->request->headers['Content-Type'] = 'application/xml; charset=UTF-8';
+		// Send xml header
+		$this->response->headers('Content-Type','application/xml; charset=UTF-8');
 	}
 }

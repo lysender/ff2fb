@@ -14,8 +14,8 @@ class Controller_Admin_Privilege extends Controller_Admin_Site
 	{
 		$this->template->title = 'Privileges';
 		$this->view = View::factory('admin/privilege/index');
-		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
-		$this->template->scripts[] = '/media/js/admin/privilege.js';
+		$this->template->scripts[] = 'media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = 'media/js/admin/privilege.js';
 		
 		$privileges = Sprig::factory('privilege')->get_all();
 		if (!empty($privileges))

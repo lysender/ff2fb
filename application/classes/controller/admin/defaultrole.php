@@ -15,8 +15,8 @@ class Controller_Admin_DefaultRole extends Controller_Admin_Site
 		$this->template->title = 'Default Roles';
 		$this->view = View::factory('admin/defaultrole/index');
 		
-		$this->template->scripts[] = '/media/js/jquery.tablesorter.min.js';
-		$this->template->scripts[] = '/media/js/admin/defaultrole.js';
+		$this->template->scripts[] = 'media/js/jquery.tablesorter.min.js';
+		$this->template->scripts[] = 'media/js/admin/defaultrole.js';
 		
 		$this->config = Sprig::factory('config', array(
 			'id' => Model_Config_DefaultRole::ID

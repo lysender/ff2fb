@@ -7,9 +7,9 @@ class Controller_Index extends Controller_Cached {
 		$this->template->description = 'Post friendfeed to facebook';
 		$this->template->keywords = 'friendfeed, facebook';
 		
-		$this->template->styles += array('/media/css/index.css' => 'all');
-		$this->template->scripts[] = '/media/js/index.js';
-		$this->template->scripts[] = '/media/js/dc-date.js';
+		$this->template->styles += array('media/css/index.css' => 'all');
+		$this->template->scripts[] = 'media/js/index.js';
+		$this->template->scripts[] = 'media/js/dc-date.js';
 		
 		$this->view = View::factory('index/index');
 		

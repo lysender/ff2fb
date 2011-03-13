@@ -7,10 +7,10 @@
 	feeds include posts of mine and likes.</p>
 	<div class="copyright">
 		<p>&copy; 2009-2010 FF2FB by <a href="http://lysender.co.cc/">Lysender</a>. All rights reserved.<br />
-		Proudly powered by Kohana v3</p>
+		Proudly powered by Kohana <?php echo Kohana::VERSION ?></p>
 	</div>
 	
-	<?php if (!IN_PRODUCTION && Kohana::$profiling): ?>
+	<?php if (Kohana::$environment === Kohana::DEVELOPMENT && Kohana::$profiling): ?>
 	<!-- Profiler stats -->
 	<div id="kohana-profiler">
 		<?php echo View::factory('profiler/stats') ?>

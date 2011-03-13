@@ -14,19 +14,19 @@
 <meta name="keywords" content="<?php echo $keywords ?>" />
 <?php endif ?>
 
-<link rel="shortcut icon" href="<?php echo URL::site('/favicon.ico?v='.APP_VERSION, true) ?>" />
+<link rel="shortcut icon" href="<?php echo URL::site('/favicon.ico?v='.APP_VERSION) ?>" />
 
 <!-- basic styles -->
 <?php foreach ($styles as $style => $media)
-	echo HTML::style(URL::site($style.'?v='.APP_VERSION, true), array('media' => $media)), "\n" ?>
+	echo HTML::style(($style.'?v='.APP_VERSION), array('media' => $media)), "\n" ?>
 
 <script type="text/javascript">
 //<![CDATA[
-	var base_url = '<?php echo URL::site('/', true) ?>';
+	var base_url = '<?php echo URL::site('/') ?>';
 //]]>
 </script>
 	
-<?php if (!IN_PRODUCTION && Kohana::$profiling): ?>
+<?php if (Kohana::$environment === Kohana::DEVELOPMENT && Kohana::$profiling): ?>
 <!-- Profiler Styles -->
 <style type="text/css">
 	<?php include Kohana::find_file('views', 'profiler/style', 'css') ?>
@@ -54,7 +54,7 @@
 
 <!-- basic scripts -->
 <?php foreach ($scripts as $script)
-	echo HTML::script(URL::site($script.'?v='.APP_VERSION, true)), "\n" ?>
+	echo HTML::script($script.'?v='.APP_VERSION), "\n" ?>
 
 <script type="text/javascript">
 //<![CDATA[

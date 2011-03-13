@@ -36,7 +36,7 @@ abstract class Controller_Site extends Controller_Template
 	{
 		$this->session = Session::instance();
 		
-		// initialize current page URL
+		// Initialize current page URI
 		$base = $this->request->uri();
 		$query = $_SERVER['QUERY_STRING'];
 		$this->current_page = "/$base?$query";
@@ -49,12 +49,12 @@ abstract class Controller_Site extends Controller_Template
 		if ($this->auto_render)
 		{
 			$this->template->styles = array(
-				'/media/css/reset.css'		=> 'all',
-				'/media/css/default.css'	=> 'all'
+				'media/css/reset.css'		=> 'all',
+				'media/css/default.css'	=> 'all'
 			);
 
 			$this->template->scripts = array(
-				'/media/js/jquery-1.3.2.min.js'
+				'media/js/jquery-1.3.2.min.js'
 			);
 		}
 	}
@@ -163,7 +163,7 @@ abstract class Controller_Site extends Controller_Template
 			)
 		);
 		
-		$controller = $this->request->controller;
+		$controller = $this->request->controller();
 		$nav[$controller]['class'] = ' class="this"';
 		
 		return $nav;

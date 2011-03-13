@@ -1,6 +1,20 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-//-- Environment setup --------------------------------------------------------
+// -- Environment setup --------------------------------------------------------
+
+// Load the core Kohana class
+require SYSPATH.'classes/kohana/core'.EXT;
+
+if (is_file(APPPATH.'classes/kohana'.EXT))
+{
+	// Application extends the core
+	require APPPATH.'classes/kohana'.EXT;
+}
+else
+{
+	// Load empty core extension
+	require SYSPATH.'classes/kohana'.EXT;
+}
 
 /**
  * Set the default time zone.
@@ -34,17 +48,23 @@ spl_autoload_register(array('Kohana', 'auto_load'));
  */
 ini_set('unserialize_callback_func', 'spl_autoload_call');
 
+// -- Configuration and initialization -----------------------------------------
+
 /**
- * Set the production status by environment
+ * Set the default language
  */
-$production_status = true;
+I18n::lang('en-us');
 
-if (in_array(getenv('APPLICATION_ENV'), array('development', 'testing')))
+/**
+ * Set Kohana::$environment if a 'KOHANA_ENV' environment variable has been supplied.
+ *
+ * Note: If you supply an invalid environment name, a PHP warning will be thrown
+ * saying "Couldn't find constant Kohana::<INVALID_ENV_NAME>"
+ */
+if (getenv('KOHANA_ENV') !== FALSE)
 {
-	$production_status = false;
+	Kohana::$environment = constant('Kohana::'.strtoupper(getenv('KOHANA_ENV')));
 }
-
-define('IN_PRODUCTION', $production_status);
 
 /**
  * Set generic salt for application wide hashing
@@ -55,19 +75,6 @@ define('GENERIC_SALT', 'dJkrTa12s9as200d0783dss');
  * Defines the version of the application
  */
 define('APP_VERSION', '0.1.9');
-
-//-- Configuration and initialization -----------------------------------------
-
-/**
- * Set Kohana::$environment if $_ENV['KOHANA_ENV'] has been supplied.
- * 
- */
-if (isset($_ENV['KOHANA_ENV']))
-{
-	Kohana::$environment = $_ENV['KOHANA_ENV'];
-}
-
-//-- Configuration and initialization -----------------------------------------
 
 /**
  * Initialize Kohana, setting the default options.
@@ -83,21 +90,22 @@ if (isset($_ENV['KOHANA_ENV']))
  * - boolean  caching     enable or disable internal caching                 FALSE
  */
 Kohana::init(array(
-	'base_url' 		=> '/',
+	'base_url'   	=> '/',
 	'index_file' 	=> FALSE,
-	'profile'  		=> ! IN_PRODUCTION,
-	'caching'    	=> IN_PRODUCTION
+	'errors'		=> TRUE,
+	'profile'  		=> (Kohana::$environment == Kohana::DEVELOPMENT),
+	'caching'    	=> (Kohana::$environment == Kohana::PRODUCTION)
 ));
 
 /**
  * Attach the file write to logging. Multiple writers are supported.
  */
-Kohana::$log->attach(new Kohana_Log_File(APPPATH.'logs'));
+Kohana::$log->attach(new Log_File(APPPATH.'logs'));
 
 /**
  * Attach a file reader to config. Multiple readers are supported.
  */
-Kohana::$config->attach(new Kohana_Config_File);
+Kohana::$config->attach(new Config_File);
 
 /**
  * Enable modules. Modules are referenced by a relative or absolute path.
@@ -107,15 +115,14 @@ Kohana::modules(array(
 	'cache'      => MODPATH.'cache',      // Caching with multiple backends
 	// 'codebench'  => MODPATH.'codebench',  // Benchmarking tool
 	'database'   => MODPATH.'database',   // Database access
-	'sprig'   	 => MODPATH.'sprig',   	 // Database access
 	// 'image'      => MODPATH.'image',      // Image manipulation
 	// 'orm'        => MODPATH.'orm',        // Object Relationship Mapping
-	// 'pagination' => MODPATH.'pagination', // Paging of results
-	//'userguide'  => MODPATH.'userguide',  // User guide and API documentation
-	'unittest'  => MODPATH.'unittest',    // PHPUnit integration
-	// 'ACL'  		=> MODPATH.'ACL',    // ACL
-	'dc'		=> MODPATH.'dc'		// Dc module / packages / helpers
-));
+	// 'unittest'   => MODPATH.'unittest',   // Unit testing
+	// 'userguide'  => MODPATH.'userguide',  // User guide and API documentation
+	'dc'		=> MODPATH.'dc',			// Dc module / packages / helpers
+	'pagecache' => MODPATH.'pagecache',	// Dc simple page caching
+	'sprig'		=> MODPATH.'sprig',		// Sprig modeling https://github.com/sittercity/sprig
+	));
 
 /**
  * Router for main page friendfeed streams with better url
@@ -129,7 +136,7 @@ Route::set('index', 'index(/<page>)')
 	));
 
 /**
- * Router for administration panel
+ * Admin pages router
  */
 Route::set('admin', 'admin(/<controller>(/<action>(/<id>(/<param2>(/<param3>)))))')
 	->defaults(array(
@@ -137,6 +144,15 @@ Route::set('admin', 'admin(/<controller>(/<action>(/<id>(/<param2>(/<param3>))))
 		'controller' => 'index',
 		'action'     => 'index',
 	));
+
+/** 
+ * Error router
+ */
+Route::set('error', 'error/<action>/<origuri>/<message>', array('action' => '[0-9]++', 'origuri' => '.+', 'message' => '.+'))
+->defaults(array(
+    'controller' => 'error',
+	'action'	 => 'index'
+));
 
 /**
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
@@ -147,51 +163,3 @@ Route::set('default', '(<controller>(/<action>(/<id>(/<param2>(/<param3>)))))')
 		'controller' => 'index',
 		'action'     => 'index',
 	));
-
-/**
- * Execute the main request. A source of the URI can be passed, eg: $_SERVER['PATH_INFO'].
- * If no source is specified, the URI will be automatically detected.
- */
-try
-{
-	// Attempt to execute the response
-	$request = Request::instance()->execute();
-	
-	// Display the request response.
-	echo $request->send_headers()->response;
-}
-catch (Exception $e)
-{
-	if ( ! IN_PRODUCTION)
-	{
-		// Just re-throw the exception
-		throw $e;
-	}
-
-	// Log the error
-	Kohana::$log->add(Kohana::ERROR, Kohana::exception_text($e));
-
-	// Create new request for serving error pages
-	$request = null;
-
-	// 404 errors are usually thrown as ReflectionException or 
-	// Kohana_Request_Exception when a controller/action is not
-	// found or a route is not set for a specific request
-	if ($e instanceof ReflectionException OR $e instanceof Kohana_Request_Exception)
-	{
-		// Create a 404 response
-		$request = Request::factory('errors/404')->execute();
-
-		// insert the requested page to the error reponse
-		$uri = (isset($_SERVER['REQUEST_URI'])) ? $_SERVER['REQUEST_URI'] : '/';
-		$page = array('{KOHANA_REQUESTED_PAGE}' => URL::site($uri, true));
-		$request->response = strtr((string) $request->response, $page);
-	}
-	else
-	{
-		// create a 500 response
-		$request = Request::factory('errors/500')->execute();
-	}
-
-	echo $request->send_headers()->response;
-}

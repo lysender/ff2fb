@@ -45,12 +45,12 @@ abstract class Controller_Admin_Site extends Controller_Site
 		if ($this->auto_render)
 		{
 			$this->template->styles = array(
-				'/media/css/reset.css'			=> 'all',
-				'/media/css/admin/default.css'	=> 'all'
+				'media/css/reset.css'			=> 'all',
+				'media/css/admin/default.css'	=> 'all'
 			);
 
 			$this->template->scripts = array(
-				'/media/js/jquery-1.3.2.min.js'
+				'media/js/jquery-1.3.2.min.js'
 			);
 		}
 	}
@@ -66,7 +66,7 @@ abstract class Controller_Admin_Site extends Controller_Site
 		$nav = array(
 			'index' => array(
 				'class'=> '',
-				'link'		=> HTML::anchor(URL::site('/admin', TRUE), 'Dashboard')
+				'link'		=> HTML::anchor(URL::site('/admin'), 'Dashboard')
 			),
 			'general' => array(
 				'class'=> '',
@@ -94,7 +94,7 @@ abstract class Controller_Admin_Site extends Controller_Site
 			'defaultrole' => 'user'
 		);
 		
-		$controller = $this->request->controller;
+		$controller = $this->request->controller();
 		if (!isset($nav[$controller]))
 		{
 			if (isset($sub[$controller]) && isset($nav[$sub[$controller]]))
