@@ -28,14 +28,14 @@ class Controller_Import extends Controller_Site
 			$import_manager->batch_import();
 			
 			Kohana::$log->add(
-				Kohana::DEBUG,
+				Log::DEBUG,
 				'Succesfull import'
 			);
 		}
 		catch (Exception $e)
 		{
 			Kohana::$log->add(
-				Kohana::DEBUG,
+				Log::DEBUG,
 				'Error while importing: ' . $e->getMessage()
 			);
 		}
@@ -46,7 +46,7 @@ class Controller_Import extends Controller_Site
 			Model_Feed::clear_rss($this->_user_id);
 			
 			// clear page cache
-			Dc_Pagecache::cleanup();
+			Pagecache::cleanup();
 		}
 	}
 }

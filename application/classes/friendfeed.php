@@ -38,7 +38,7 @@ class Friendfeed
 	public function get($url, $like = false)
 	{
 		try {
-			$data = Remote::get($url);
+			$data = Request::factory($url)->execute()->body();
 		}
 		catch (Exception $e)
 		{

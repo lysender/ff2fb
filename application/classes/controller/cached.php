@@ -10,7 +10,9 @@ abstract class Controller_Cached extends Controller_Site
 	{
 		parent::after();
 		
-		/*Dc_Pagecache::factory($this->request->uri)
-			->write($this->request->response);*/
+		$uri = Arr::get($_SERVER, 'REQUEST_URI', $this->request->uri());
+
+		Pagecache::factory($uri)
+			->write($this->response->body());
 	}
 }
