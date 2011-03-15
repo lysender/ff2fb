@@ -2,7 +2,8 @@
 
 class Friendfeed
 {
-	const URL = 'http://friendfeed-api.com/v2/';
+	const HOST = 'friendfeed-api.com';
+	const API_URL = '/v2/';
 	//const URL = 'http://localhost/ff2fb/resources/';
 	
 	/**
@@ -37,8 +38,45 @@ class Friendfeed
 	 */
 	public function get($url, $like = false)
 	{
-		try {
-			$data = Request::factory($url)->execute()->body();
+		$feed_url = self::API_URL.$url;
+		$sock_success = FALSE;
+		$content = NULL;
+		
+		try
+		{
+			$fp = @fsockopen(self::HOST, 80, $errno, $errstr, 1);
+			
+			if ($fp)
+			{
+				stream_set_timeout($fp, 1);
+				
+				$out = "GET $feed_url HTTP/1.0\r\n";
+				$out .= "Host: ".self::HOST."\r\n";
+				$out .= "Connection: Close\r\n\r\n";
+				if (fwrite($fp, $out))
+				{
+					$content = '';
+					$header = 'not yet';
+					
+					while ( ! feof($fp))
+					{
+						$sock_success = TRUE;
+						$line = fgets($fp, 128);
+						
+						if ($line == "\r\n" && $header == "not yet")
+						{
+							$header = "passed";
+						}
+						
+						if ($header=="passed")
+						{
+							$content.=$line;
+						}
+					}
+					
+					fclose ($fp);
+				}
+			}
 		}
 		catch (Exception $e)
 		{
@@ -52,12 +90,13 @@ class Friendfeed
 			return FALSE;
 		}
 		
-		if ($data)
+		if ($sock_success && $content)
 		{
-			$data = json_decode($data);
-			if ($data instanceof stdClass && !empty($data->entries))
+			$content = json_decode($content);
+			
+			if ($content instanceof stdClass && ! empty($content->entries))
 			{
-				return self::parse_entries($data->entries, $like);
+				return self::parse_entries($content->entries, $like);
 			}
 		}
 		
@@ -72,7 +111,7 @@ class Friendfeed
 	 */
 	public function get_feeds()
 	{
-		$url = self::URL . 'feed/' . $this->ffuser;
+		$url = 'feed/' . $this->ffuser;
 		return $this->get($url);
 	}
 	
@@ -84,7 +123,7 @@ class Friendfeed
 	 */
 	public function get_likes()
 	{
-		$url = self::URL . 'feed/' . $this->ffuser . '/likes';
+		$url = 'feed/' . $this->ffuser . '/likes';
 		return $this->get($url);
 	}
 	
