@@ -14,7 +14,9 @@ class Controller_Import extends Controller_Site
 	
 	public function action_index()
 	{
-		$this->auto_render = false;
+		//$this->auto_render = false;
+		$this->template->title = 'Import feeds';
+		
 		$secret = $this->request->param('id');
 		
 		if ($secret != $this->_secret_key)
@@ -24,6 +26,7 @@ class Controller_Import extends Controller_Site
 
 		// otherwise, process import
 		$import_manager = new Import_Manager;
+		
 		try {
 			$import_manager->batch_import();
 			

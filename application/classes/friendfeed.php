@@ -44,11 +44,11 @@ class Friendfeed
 		
 		try
 		{
-			$fp = @fsockopen(self::HOST, 80, $errno, $errstr, 1);
+			$fp = fsockopen(self::HOST, 80, $errno, $errstr, 1);
 			
 			if ($fp)
 			{
-				stream_set_timeout($fp, 1);
+				//stream_set_timeout($fp, 1);
 				
 				$out = "GET $feed_url HTTP/1.0\r\n";
 				$out .= "Host: ".self::HOST."\r\n";
@@ -81,7 +81,7 @@ class Friendfeed
 		catch (Exception $e)
 		{
 			Kohana::$log->add(
-				Kohana::ERROR,
+				Log::ERROR,
 				$e->getMessage() . ": Error while getting feeds at $url on "
 					. __CLASS__ . " on function " . __FUNCTION__ . " line "
 					. __LINE__
